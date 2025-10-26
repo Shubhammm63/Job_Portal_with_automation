@@ -103,55 +103,99 @@ const jobSlice = createSlice({
   },
 });
 
+// export const fetchJobs =
+//   (city, niche, searchKeyword = "") =>
+//   async (dispatch) => {
+//     try {
+//       dispatch(jobSlice.actions.requestForAllJobs());
+//       let link = `${import.meta.env.VITE_API_BASE_URL}/api/v1/job/getall`;
+//       let queryParams = [];
+//       if (searchKeyword) {
+//         queryParams.push(`searchKeyword=${searchKeyword}`);
+//       }
+//       if (city && city !== "All") {
+//         queryParams.push(`city=${city}`);
+//       }
+
+//       /***************************************************/
+//       /* BUG No.3 */
+//       if (city && city === "All") {
+//         queryParams = [];
+//         if (searchKeyword) {
+//           queryParams.push(`searchKeyword=${searchKeyword}`);
+//         }
+//       }
+//       /***************************************************/
+
+//       if (niche) {
+//         queryParams.push(`niche=${niche}`);
+//       }
+
+//       /***************************************************/
+//       /* BUG No.4 */
+//       if (niche && niche === "All") {
+//         queryParams = [];
+//         if (searchKeyword) {
+//           queryParams.push(`searchKeyword=${searchKeyword}`);
+//         }
+//         if (city && city !== "All") {
+//           queryParams.push(`city=${city}`);
+//         }
+//       }
+//       /***************************************************/
+
+//       link += queryParams.join("&");
+//       const response = await axios.get(link, { withCredentials: true });
+//       dispatch(jobSlice.actions.successForAllJobs(response.data.jobs));
+//       dispatch(jobSlice.actions.clearAllErrors());
+//     } catch (error) {
+//       dispatch(jobSlice.actions.failureForAllJobs(error.response.data.message));
+//     }
+//   };
+
+
 export const fetchJobs =
   (city, niche, searchKeyword = "") =>
   async (dispatch) => {
     try {
       dispatch(jobSlice.actions.requestForAllJobs());
+
       let link = `${import.meta.env.VITE_API_BASE_URL}/api/v1/job/getall`;
       let queryParams = [];
+
       if (searchKeyword) {
         queryParams.push(`searchKeyword=${searchKeyword}`);
       }
+
+      // If city is not "All"
       if (city && city !== "All") {
         queryParams.push(`city=${city}`);
       }
 
-      /***************************************************/
-      /* BUG No.3 */
-      if (city && city === "All") {
-        queryParams = [];
-        if (searchKeyword) {
-          queryParams.push(`searchKeyword=${searchKeyword}`);
-        }
-      }
-      /***************************************************/
-
-      if (niche) {
+      // If niche is not "All"
+      if (niche && niche !== "All") {
         queryParams.push(`niche=${niche}`);
       }
 
-      /***************************************************/
-      /* BUG No.4 */
-      if (niche && niche === "All") {
-        queryParams = [];
-        if (searchKeyword) {
-          queryParams.push(`searchKeyword=${searchKeyword}`);
-        }
-        if (city && city !== "All") {
-          queryParams.push(`city=${city}`);
-        }
+      // Add query string properly
+      if (queryParams.length > 0) {
+        link += `?${queryParams.join("&")}`;
       }
-      /***************************************************/
 
-      link += queryParams.join("&");
       const response = await axios.get(link, { withCredentials: true });
+
       dispatch(jobSlice.actions.successForAllJobs(response.data.jobs));
       dispatch(jobSlice.actions.clearAllErrors());
     } catch (error) {
-      dispatch(jobSlice.actions.failureForAllJobs(error.response.data.message));
+      console.error("Error fetching jobs:", error);
+      dispatch(
+        jobSlice.actions.failureForAllJobs(
+          error.response?.data?.message || error.message
+        )
+      );
     }
   };
+
 
 export const fetchSingleJob = (jobId) => async (dispatch) => {
   dispatch(jobSlice.actions.requestForSingleJob());
